@@ -56,6 +56,7 @@ class SyncShell extends Shell
         Configure::write('debug', true);
         $this->loadModel('Roster');
         $members = $this->getGuildMembers(Configure::read('Guild.number'), Configure::read('Guild.name'));
+        $this->pruneOldMembers($members);
         $count = 0;
         $limit = 50;
         foreach ($members as $member) {
@@ -97,6 +98,13 @@ class SyncShell extends Shell
                     }
                 }
             }
+        }
+    }
+
+    private function pruneOldMembers($currentMembers = [])
+    {
+        if (!empty($currentMembers)) {
+            $this->Roster->deleteAll(['Roster.member NOT IN' => $currentMembers]);
         }
     }
 
