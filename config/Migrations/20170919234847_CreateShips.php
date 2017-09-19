@@ -1,17 +1,18 @@
 <?php
 use Migrations\AbstractMigration;
 
-class CreateRoster extends AbstractMigration
+class CreateShips extends AbstractMigration
 {
+
     public function up()
     {
-        $this->table('roster', ['id' => false, 'primary_key' => ['member', 'toon']])
+        $this->table('ships', ['id' => false, 'primary_key' => ['member', 'ship']])
             ->addColumn('member', 'string', [
                 'default' => '',
                 'limit' => 100,
                 'null' => false,
             ])
-            ->addColumn('toon', 'string', [
+            ->addColumn('ship', 'string', [
                 'default' => '',
                 'limit' => 100,
                 'null' => false,
@@ -25,12 +26,6 @@ class CreateRoster extends AbstractMigration
             ->addColumn('stars', 'integer', [
                 'default' => null,
                 'limit' => 1,
-                'null' => false,
-                'signed' => false,
-            ])
-            ->addColumn('gear', 'integer', [
-                'default' => null,
-                'limit' => 2,
                 'null' => false,
                 'signed' => false,
             ])
@@ -64,6 +59,6 @@ class CreateRoster extends AbstractMigration
 
     public function down()
     {
-        $this->dropTable('roster');
+        $this->dropTable('ships');
     }
 }

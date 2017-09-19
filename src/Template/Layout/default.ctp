@@ -32,16 +32,27 @@
                             <?= $this->Html->link('By Gear', ['controller' => 'Roster', 'action' => 'gear'], ['class' => 'dropdown-item']) ?>
                             <?= $this->Html->link('By Level', ['controller' => 'Roster', 'action' => 'level'], ['class' => 'dropdown-item']) ?>
                             <?= $this->Html->link('By Power', ['controller' => 'Roster', 'action' => 'power'], ['class' => 'dropdown-item']) ?>
+                            <?= $this->Html->link('Star Average', ['controller' => 'Roster', 'action' => 'average'], ['class' => 'dropdown-item']) ?>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" onclick="return false" id="ship-items" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Ships
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="ship-items">
+                            <?= $this->Html->link('By Stars', ['controller' => 'Ships', 'action' => 'stars'], ['class' => 'dropdown-item']) ?>
+                            <?= $this->Html->link('By Level', ['controller' => 'Ships', 'action' => 'level'], ['class' => 'dropdown-item']) ?>
+                            <?= $this->Html->link('Star Average', ['controller' => 'Ships', 'action' => 'average'], ['class' => 'dropdown-item']) ?>
                         </div>
                     </li>
                     <li class="nav-item">
                         <?= $this->Html->link('Guild Members', ['controller' => 'Roster', 'action' => 'members'], ['class' => 'nav-link']) ?>
                     </li>
                     <li class="nav-item">
-                        <?= $this->Html->link('Toons', ['controller' => 'Roster', 'action' => 'toons'], ['class' => 'nav-link']) ?>
+                        <?= $this->Html->link('Toon List', ['controller' => 'Roster', 'action' => 'toons'], ['class' => 'nav-link']) ?>
                     </li>
                     <li class="nav-item">
-                        <?= $this->Html->link('Star Average', ['controller' => 'Roster', 'action' => 'average'], ['class' => 'nav-link']) ?>
+                        <?= $this->Html->link('Ship List', ['controller' => 'Ships', 'action' => 'ships'], ['class' => 'nav-link']) ?>
                     </li>
                 </ul>
             </div>
