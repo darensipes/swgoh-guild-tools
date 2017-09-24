@@ -150,7 +150,7 @@ class SyncShell extends Shell
         $html = file_get_html(sprintf("%s/g/%d/%s/", self::SITE, $guildId, $guildShortName));
         foreach ($html->find('table[class="table"] td a') as $element) {
             preg_match("/\/u\/(.*)\//", $element->href, $matches)[1];
-            $members[] = $matches[1];
+            $members[] = html_entity_decode($matches[1], ENT_QUOTES);
         }
 
         return $members;
