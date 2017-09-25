@@ -56,11 +56,8 @@ class SyncShell extends Shell
         Configure::write('debug', true);
         $this->loadModel('Roster');
         $this->loadModel('Ships');
-        //$members = $this->getGuildMembers(Configure::read('Guild.number'), Configure::read('Guild.name'));
-        $members = ['k%C3%B8r%20dbill'];
-        debug(rawurldecode(html_entity_decode('k%C3%B8r%20dbill', ENT_QUOTES)));
-        exit;
-        //$this->pruneOldMembers($members);
+        $members = $this->getGuildMembers(Configure::read('Guild.number'), Configure::read('Guild.name'));
+        $this->pruneOldMembers($members);
         $count = 0;
         $limit = 50;
         foreach ($members as $member) {
@@ -153,7 +150,7 @@ class SyncShell extends Shell
         $html = file_get_html(sprintf("%s/g/%d/%s/", self::SITE, $guildId, $guildShortName));
         foreach ($html->find('table[class="table"] td a') as $element) {
             preg_match("/\/u\/(.*)\//", $element->href, $matches)[1];
-            $members[] = html_entity_decode($matches[1], ENT_QUOTES);
+            $members[] = rawurldecode($matches[1]);
         }
 
         return $members;
