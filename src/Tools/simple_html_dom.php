@@ -73,7 +73,21 @@ function file_get_html($url, $use_include_path = false, $context=null, $offset =
     $dom = new simple_html_dom(null, $lowercase, $forceTagsClosed, $target_charset, $stripRN, $defaultBRText, $defaultSpanText);
     // For sourceforge users: uncomment the next line and comment the retreive_url_contents line 2 lines down if it is not already done.
     //$contents = file_get_contents($url, $use_include_path, $context, $offset);
-    $contents = file_get_contents($url, $use_include_path, $context);
+    set_error_handler(
+        function ($errorNumber, $errorText, $errorFile, $errorLine) {
+            throw new ErrorException($errorText, 0, $errorNumber, $errorFile, $errorLine);
+        },
+        E_ALL
+    );
+
+    try {
+        $contents = file_get_contents($url, $use_include_path, $context);
+    } catch (Exception $e) {
+        throw new Exception('Not Found', 404);
+    }
+
+    restore_error_handler();
+
     // Paperg - use our own mechanism for getting the contents as we want to control the timeout.
     //$contents = retrieve_url_contents($url);
     if (empty($contents) || strlen($contents) > MAX_FILE_SIZE)

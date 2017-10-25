@@ -84,12 +84,14 @@ class SyncShell extends Shell
                             'light_side' => $data['light_side']
                         ]);
                     } else {
-                        $roster->level = $data['level'];
-                        $roster->stars = $data['stars'];
-                        $roster->gear = $data['gear'];
-                        $roster->power = $data['power'];
-                        $roster->max_power = $data['max_power'];
-                        $roster->light_side = $data['light_side'];
+                        if ($data['stars'] >= $roster->stars) {
+                            $roster->level = $data['level'];
+                            $roster->stars = $data['stars'];
+                            $roster->gear = $data['gear'];
+                            $roster->power = $data['power'];
+                            $roster->max_power = $data['max_power'];
+                            $roster->light_side = $data['light_side'];
+                        }
                     }
 
                     if ($this->Roster->save($roster)) {
@@ -120,11 +122,13 @@ class SyncShell extends Shell
                             'light_side' => $data['light_side']
                         ]);
                     } else {
-                        $roster->level = $data['level'];
-                        $roster->stars = $data['stars'];
-                        $roster->power = $data['power'];
-                        $roster->max_power = $data['max_power'];
-                        $roster->light_side = $data['light_side'];
+                        if ($data['stars'] >= $roster->stars) {
+                            $roster->level = $data['level'];
+                            $roster->stars = $data['stars'];
+                            $roster->power = $data['power'];
+                            $roster->max_power = $data['max_power'];
+                            $roster->light_side = $data['light_side'];
+                        }
                     }
 
                     if ($this->Ships->save($roster)) {
@@ -160,7 +164,11 @@ class SyncShell extends Shell
     {
         Configure::write('debug', true);
         $toons = [];
-        $html = file_get_html(sprintf("%s/u/%s/collection/", self::SITE, $username));
+        try {
+            $html = file_get_html(sprintf("%s/u/%s/collection/", self::SITE, $username));
+        } catch (\Exception $e) {
+            return [];
+        }
         foreach ($html->find('div[class="collection-char"]') as $element) {
             $name = !empty($element->find('div[class="collection-char-name"]', 0)->plaintext) ? html_entity_decode($element->find('div[class="collection-char-name"]', 0)->plaintext, ENT_QUOTES) : null;
             $level = !empty($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) ? $element->find('div[class="char-portrait-full-level"]', 0)->plaintext : 0;
@@ -200,7 +208,11 @@ class SyncShell extends Shell
     {
         Configure::write('debug', true);
         $ships = [];
-        $html = file_get_html(sprintf("%s/u/%s/ships/", self::SITE, $username));
+        try {
+            $html = file_get_html(sprintf("%s/u/%s/ships/", self::SITE, $username));
+        } catch (\Exception $e) {
+            return [];
+        }
         foreach ($html->find('div[class="collection-ship"]') as $element) {
             $name = !empty($element->find('div[class="collection-ship-name"]', 0)->plaintext) ? html_entity_decode($element->find('div[class="collection-ship-name"]', 0)->plaintext, ENT_QUOTES) : null;
             $level = !empty($element->find('div[class="ship-portrait-full-frame-level"]', 0)->plaintext) ? $element->find('div[class="ship-portrait-full-frame-level"]', 0)->plaintext : 0;

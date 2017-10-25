@@ -34,6 +34,10 @@ class RosterController extends AppController
             }
         }
 
+        if ($this->request->getQuery('eligible')) {
+            $inventories->where(['Roster.member IN' => $this->Roster->getUniqueMembers(65)]);
+        }
+
         $toons = $this->Roster->getUniqueToons($lightSide);
 
         $roster = Hash::combine($inventories->toArray(), '{n}.toon', '{n}.stars', '{n}.member');
@@ -61,6 +65,10 @@ class RosterController extends AppController
                 $inventories->where(['Roster.light_side' => false]);
                 $lightSide = false;
             }
+        }
+
+        if ($this->request->getQuery('eligible')) {
+            $inventories->where(['Roster.member IN' => $this->Roster->getUniqueMembers(65)]);
         }
 
         $toons = $this->Roster->getUniqueToons($lightSide);
@@ -92,6 +100,10 @@ class RosterController extends AppController
             }
         }
 
+        if ($this->request->getQuery('eligible')) {
+            $inventories->where(['Roster.member IN' => $this->Roster->getUniqueMembers(65)]);
+        }
+
         $toons = $this->Roster->getUniqueToons($lightSide);
 
         $roster = Hash::combine($inventories->toArray(), '{n}.toon', '{n}.level', '{n}.member');
@@ -119,6 +131,10 @@ class RosterController extends AppController
                 $inventories->where(['Roster.light_side' => false]);
                 $lightSide = false;
             }
+        }
+
+        if ($this->request->getQuery('eligible')) {
+            $inventories->where(['Roster.member IN' => $this->Roster->getUniqueMembers(65)]);
         }
 
         $toons = $this->Roster->getUniqueToons($lightSide);
@@ -200,6 +216,4 @@ class RosterController extends AppController
         $this->set('member', $member);
         $this->set('_serialize', ['member']);
     }
-
-
 }

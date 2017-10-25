@@ -84,12 +84,13 @@ class RosterTable extends Table
         return $validator;
     }
 
-    public function getUniqueMembers()
+    public function getUniqueMembers($level = 0)
     {
         $members = $this
              ->find()
              ->select(['Roster.member'])
              ->group(['Roster.member'])
+             ->where(['Roster.level >=' => $level])
              ->orderAsc('Roster.member')
              ->hydrate(false)
              ->toArray();

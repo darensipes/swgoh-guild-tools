@@ -79,11 +79,12 @@ class ShipsTable extends Table
         return $validator;
     }
 
-    public function getUniqueMembers()
+    public function getUniqueMembers($level = 0)
     {
         $members = $this
              ->find()
              ->select(['Ships.member'])
+             ->where(['Ships.level >=' => $level])
              ->group(['Ships.member'])
              ->orderAsc('Ships.member')
              ->hydrate(false)

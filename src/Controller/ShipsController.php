@@ -34,6 +34,10 @@ class ShipsController extends AppController
             }
         }
 
+        if ($this->request->getQuery('eligible')) {
+            $inventories->where(['Ships.member IN' => $this->Ships->getUniqueMembers(65)]);
+        }
+
         $ships = $this->Ships->getUniqueShips($lightSide);
 
         $roster = Hash::combine($inventories->toArray(), '{n}.ship', '{n}.stars', '{n}.member');
@@ -61,6 +65,10 @@ class ShipsController extends AppController
                 $inventories->where(['Ships.light_side' => false]);
                 $lightSide = false;
             }
+        }
+
+        if ($this->request->getQuery('eligible')) {
+            $inventories->where(['Ships.member IN' => $this->Ships->getUniqueMembers(65)]);
         }
 
         $ships = $this->Ships->getUniqueShips($lightSide);
