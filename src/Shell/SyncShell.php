@@ -145,6 +145,7 @@ class SyncShell extends Shell
     {
         if (!empty($currentMembers)) {
             $this->Roster->deleteAll(['Roster.member NOT IN' => $currentMembers]);
+            $this->Ships->deleteAll(['Ships.member NOT IN' => $currentMembers]);
         }
     }
 
