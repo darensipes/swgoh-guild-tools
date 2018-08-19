@@ -1,0 +1,41 @@
+---
+- name: Deploys The CakePHP SWGOH Development application
+  hosts: development
+  user: vagrant
+  become: yes
+  become_user: root
+  vars:
+    app_path: "/var/www/swgoh"
+    app_name: "swgoh"
+    become_alternate_user: "vagrant"
+  roles:
+    - system
+    - php
+    - nginx
+    - mysql
+    - memcached
+  tasks:
+    - name: Execute bash script
+      command: sh {{ app_path }}/ansible/roles/mysql/scripts/set-root.sh
+      notify: restart mysql
+
+    - name: make a symbolic link for application crontab file
+      file: src={{ app_path }}/crontab dest=/etc/cron.d/{{ app_name }} state=link
+
+    - name: install composer dependencies
+      composer: command=install no_dev=no working_dir={{ app_path }}
+      become: yes
+      become_user: "{{ become_alternate_user }}"
+      ignore_errors: yes
+
+    - name: restart nginx again
+      command: systemctl restart nginx.service
+
+    - name: restart mysql again
+      command: systemctl restart mysql.service
+
+    - name: restart php7.2-fpm again
+      command: systemctl restart php7.2-fpm.service
+
+    - name: run swgoh migrations
+      command: "{{ app_path }}/bin/cake migrations migrate"

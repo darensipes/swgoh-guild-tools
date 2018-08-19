@@ -1,0 +1,23 @@
+---
+- name: Update apt cache
+  apt: update_cache=yes
+
+- name: Install MySQL packages
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+    - python-pycurl
+    - python-mysqldb
+    - mysql-server
+    - mysql-client
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Start MySQL Server
+  command: service mysql start
+
+- name: Copy my.cnf
+  template:
+    src: my.cnf
+    dest: /etc/mysql/my.cnf
+    backup: yes
+  notify: restart mysql

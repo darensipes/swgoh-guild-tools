@@ -1,0 +1,30 @@
+---
+- name: Install aptitude
+  apt: name=aptitude state=present
+- name: Update apt
+  apt: update_cache=yes cache_valid_time=3600
+- name: Upgrade apt
+  apt: upgrade=full
+- name: Make a general dist-upgrade
+  apt: upgrade=dist
+
+- name: Install Essential Packages
+  apt: pkg={{ item }} state=present
+  with_items:
+    - curl
+    - python-pycurl
+    - software-properties-common
+    - htop
+    - wget
+    - ghostscript
+    - mcrypt
+    - imagemagick
+    - vim
+    - build-essential
+    - rsync
+    - git-core
+    - libssl1.0-dev
+    - unzip
+
+- name: make a symbolic link for www
+  file: src=/var/www/ dest=/www state=link

@@ -1,9 +1,13 @@
 <?php
 namespace App\Shell;
 
+use App\Model\Entity\Guild;
+use App\Model\Entity\Member;
 use Cake\Core\Configure;
+use Cake\Core\Exception\Exception;
 use Cake\Console\Shell;
-use Exception;
+use Cake\I18n\Time;
+use Cake\Utility\Hash;
 
 include_once(APP . 'Tools' . DS . 'simple_html_dom.php');
 
@@ -12,11 +16,19 @@ include_once(APP . 'Tools' . DS . 'simple_html_dom.php');
  */
 class SyncShell extends Shell
 {
-
+    /**
+     * Site
+     */
     const SITE = 'https://swgoh.gg';
 
+    /**
+     * Stars
+     */
     const STARS = 7;
 
+    /**
+     * Gear Levels
+     */
     const GEAR_LEVELS = [
         'I' => 1,
         'II' => 2,
@@ -33,141 +45,275 @@ class SyncShell extends Shell
     ];
 
     /**
-     * Manage the available sub-commands along with their arguments and help
-     *
-     * @see http://book.cakephp.org/3.0/en/console-and-shells.html#configuring-options-and-generating-help
-     *
-     * @return \Cake\Console\ConsoleOptionParser
+     * Init Function
      */
-    public function getOptionParser()
+    public function initialize()
     {
-        $parser = parent::getOptionParser();
-
-        return $parser;
+        parent::initialize();
+        $this->loadModel('Guilds');
+        $this->loadModel('Members');
+        $this->loadModel('Characters');
+        $this->loadModel('Ships');
     }
 
     /**
-     * main() method.
+     * Main Function
      *
-     * @return bool|int|null Success or error code.
+     * @return void
      */
     public function main()
     {
         Configure::write('debug', true);
-        $this->loadModel('Roster');
-        $this->loadModel('Ships');
-        $members = $this->getGuildMembers(Configure::read('Guild.number'), Configure::read('Guild.name'));
-        $this->pruneOldMembers($members);
-        $count = 0;
-        $limit = 50;
-        foreach ($members as $member) {
-            if ($count++ <= $limit) {
-                $toons = $this->getToons($member);
-                foreach ($toons as $toon => $data) {
-                    $roster = $this->Roster
-                         ->find()
-                         ->where([
-                            'Roster.member' => $member,
-                            'Roster.toon' => $toon,
-                        ])
-                        ->first();
+        $syncUtcHour = (new Time())->format('H');
 
-                    if (empty($roster)) {
-                        $roster = $this->Roster->newEntity([
-                            'member' => $member,
-                            'toon' => $toon,
-                            'level' => $data['level'],
-                            'stars' => $data['stars'],
-                            'gear' => $data['gear'],
-                            'power' => $data['power'],
-                            'max_power' => $data['max_power'],
-                            'light_side' => $data['light_side']
-                        ]);
-                    } else {
-                        if ($data['stars'] >= $roster->stars) {
-                            $roster->level = $data['level'];
-                            $roster->stars = $data['stars'];
-                            $roster->gear = $data['gear'];
-                            $roster->power = $data['power'];
-                            $roster->max_power = $data['max_power'];
-                            $roster->light_side = $data['light_side'];
-                        }
-                    }
+        $guilds = $this->Guilds
+            ->find()
+            ->where(['sync_utc_hour' => $syncUtcHour]);
 
-                    if ($this->Roster->save($roster)) {
-                        $this->out('Saving: [' . $roster->member . '][' . $roster->toon . '] ' . 'Level: ' . $roster->level . ' Gear: ' . $roster->gear . ' Stars:' . $roster->stars);
-                    } else {
-                        $this->out('<error>Not Saving: [' . $roster->member . '][' . $roster->toon . '] ' . 'Level: ' . $roster->level . ' Gear: ' . $roster->gear . ' Stars:' . $roster->stars . '</error>');
-                    }
-                }
+        foreach ($guilds as $guild) {
+            $this->syncGuild($guild);
+            $members = $this->Members
+                ->find()
+                ->contain([
+                    'Guilds'
+                ])
+                ->where([
+                    'Members.guild_id' => $guild->id,
+                    //'Members.swgoh_name' => '1911blaster'
+                ]);
 
-                $ships = $this->getShips($member);
-                foreach ($ships as $ship => $data) {
-                    $roster = $this->Ships
-                         ->find()
-                         ->where([
-                            'Ships.member' => $member,
-                            'Ships.ship' => $ship,
-                        ])
-                        ->first();
-
-                    if (empty($roster)) {
-                        $roster = $this->Ships->newEntity([
-                            'member' => $member,
-                            'ship' => $ship,
-                            'level' => $data['level'],
-                            'stars' => $data['stars'],
-                            'power' => $data['power'],
-                            'max_power' => $data['max_power'],
-                            'light_side' => $data['light_side']
-                        ]);
-                    } else {
-                        if ($data['stars'] >= $roster->stars) {
-                            $roster->level = $data['level'];
-                            $roster->stars = $data['stars'];
-                            $roster->power = $data['power'];
-                            $roster->max_power = $data['max_power'];
-                            $roster->light_side = $data['light_side'];
-                        }
-                    }
-
-                    if ($this->Ships->save($roster)) {
-                        $this->out('Saving: [' . $roster->member . '][' . $roster->ship . '] ' . 'Level: ' . $roster->level . ' Stars:' . $roster->stars);
-                    } else {
-                        $this->out('<error>Not Saving: [' . $roster->member . '][' . $roster->toon . '] ' . 'Level: ' . $roster->level . ' Stars:' . $roster->stars . '</error>');
-                    }
-                }
+            foreach ($members as $member) {
+                $this->hr();
+                $this->out('Working with Member: ' . $member->swgoh_name);
+                $this->hr();
+                $this->syncCharacters($member);
+                $this->syncShips($member);
+                sleep(1);
             }
         }
     }
 
-    private function pruneOldMembers($currentMembers = [])
+    public function base()
     {
-        if (!empty($currentMembers)) {
-            $this->Roster->deleteAll(['Roster.member NOT IN' => $currentMembers]);
-            $this->Ships->deleteAll(['Ships.member NOT IN' => $currentMembers]);
+        Configure::write('debug', true);
+        $this->syncBaseCharacters();
+        $this->syncBaseShips();
+    }
+
+    private function syncBaseCharacters()
+    {
+        try {
+            $html = file_get_html('https://swgoh.gg/');
+        } catch (Exception $e) {
+            return [];
+        }
+        $factions = $this->Characters->Factions->find('list')->toArray();
+        foreach ($html->find('li[class="character"]') as $element) {
+            $characterName = html_entity_decode($element->getAttribute('data-name-lower'), ENT_QUOTES);
+            $tags = $element->getAttribute('data-tags');
+            $character = $this->Characters
+                ->find()
+                ->where(['Characters.name' => $characterName])
+                ->first();
+            if (!empty($character)) {
+                $ids = [];
+                foreach ($factions as $factionId => $faction) {
+                    if (stripos($tags, $faction) !== false) {
+                        $ids[] = $factionId;
+                    }
+                }
+
+                if (!empty($ids)) {
+                    $character = $this->Characters->patchEntity($character, ['factions' => ['_ids' => $ids]]);
+                    if (!$this->Characters->save($character)) {
+                        $this->out('<error>Unable to save factions for: ' . $characterName . '</error>');
+                    }
+                }
+            } else {
+                $this->out('<error>Character Not Found: ' . $characterName . '</error>');
+            }
         }
     }
 
-    private function getGuildMembers($guildId, $guildShortName)
+    private function syncBaseShips()
+    {
+        try {
+            $html = file_get_html('https://swgoh.gg/ships/');
+        } catch (Exception $e) {
+            return [];
+        }
+        $factions = $this->Ships->Factions->find('list')->toArray();
+        foreach ($html->find('li[class="character"]') as $element) {
+            $shipName = html_entity_decode($element->getAttribute('data-name-lower'), ENT_QUOTES);
+            $tags = $element->getAttribute('data-tags');
+            $ship = $this->Ships
+                ->find()
+                ->where(['Ships.name' => $shipName])
+                ->first();
+            if (!empty($ship)) {
+                $ids = [];
+                foreach ($factions as $factionId => $faction) {
+                    if (stripos($tags, $faction) !== false) {
+                        $ids[] = $factionId;
+                    }
+                }
+
+                if (!empty($ids)) {
+                    $ship = $this->Ships->patchEntity($ship, ['factions' => ['_ids' => $ids]]);
+                    if (!$this->Ships->save($ship)) {
+                        $this->out('<error>Unable to save factions for: ' . $shipName . '</error>');
+                    }
+                }
+            } else {
+                $this->out('<error>Ship Not Found: ' . $shipName . '</error>');
+            }
+        }
+    }
+
+    private function syncGuild(Guild $guild)
+    {
+        $swgohMembers = $this->getGuildMembersFromSwgoh($guild->url);
+
+        if (!empty($swgohMembers)) {
+            $this->pruneMembers($guild->id, array_keys($swgohMembers));
+        }
+
+        $this->syncMembers($swgohMembers, $guild->id);
+    }
+
+    private function syncMembers(array $swgohMembers, $guildId)
+    {
+        foreach ($swgohMembers as $swgohName => $inGameName) {
+            $member = $this->Members
+                ->find()
+                ->where([
+                    'Members.swgoh_name' => $swgohName,
+                    'Members.guild_id' => $guildId
+                ])
+                ->first();
+
+            if (empty($member)) {
+                $member = $this->Members->newEntity([
+                    'name' => $inGameName,
+                    'swgoh_name' => $swgohName,
+                    'guild_id' => $guildId
+                ]);
+            } else {
+                $member = $this->Members->patchEntity($member, [
+                    'name' => $inGameName,
+                    'swgoh_name' => $swgohName,
+                    'guild_id' => $guildId
+                ]);
+            }
+
+            $newRecord = $member->isNew();
+            if ($this->Members->save($member)) {
+                if ($newRecord) {
+                    $this->out('<success>Saving New Member: ' . $inGameName . '</success>');
+                } else {
+                    $this->out('<success>Updating Existing Member: ' . $inGameName . '</success>');
+                }
+            } else {
+                $this->out('<error>Failed to Save Member!</error>');
+            }
+        }
+    }
+
+    private function getGuildMembersFromSwgoh($url)
     {
         $members = [];
-        $html = file_get_html(sprintf("%s/g/%d/%s/", self::SITE, $guildId, $guildShortName));
+        $html = file_get_html($url);
         foreach ($html->find('table[class="table"] td a') as $element) {
             preg_match("/\/u\/(.*)\//", $element->href, $matches)[1];
-            $members[] = rawurldecode($matches[1]);
+            $members[trim(rawurldecode($matches[1]))] = trim($element->plaintext);
         }
 
         return $members;
     }
 
-    private function getToons($username)
+    private function pruneMembers($guildId, array $newMembers = [])
     {
-        Configure::write('debug', true);
-        $toons = [];
+        $members = $this->Members
+            ->find()
+            ->where(['Members.guild_id' => $guildId]);
+
+        foreach ($members as $member) {
+            if (!in_array($member->swgoh_name, $newMembers)) {
+                if ($this->Members->delete($member)) {
+                    $this->out('<warning>Deleting Old Guild Member: ' . $member->swgoh_name . '</warning>');
+                }
+            }
+        }
+    }
+
+    private function syncCharacters(Member $member)
+    {
+        $swgohCharacters = $this->getCharacters($member->characters_url);
+        ksort($swgohCharacters);
+        $characters = $this->Characters->find('list', ['keyField' => 'name', 'valueField' => 'id'])->toArray();
+        foreach ($swgohCharacters as $swgohCharacterName => $swgohCharacterData) {
+            if (!empty($characters[$swgohCharacterName])) {
+                $characterId = $characters[$swgohCharacterName];
+            } else {
+                $character = $this->Characters->newEntity([
+                    'name' => $swgohCharacterName,
+                    'light_side' => $swgohCharacterData['light_side']
+                ]);
+
+                if ($this->Characters->save($character)) {
+                    $this->out('<success>Saving New Character: ' . $swgohCharacterName . '</success>');
+                    $characterId = $character->id;
+                } else {
+                    $this->out('<error>Unable to save New Character: ' . $swgohCharacterName . '</error>');
+                }
+            }
+
+            if (!empty($characterId)) {
+                $memberCharacter = $this->Members->MemberCharacters
+                    ->find()
+                    ->where([
+                        'MemberCharacters.member_id' => $member->id,
+                        'MemberCharacters.character_id' => $characterId
+                    ])
+                    ->first();
+                if (!empty($memberCharacter)) {
+                    $memberCharacter = $this->Members->MemberCharacters->patchEntity($memberCharacter, [
+                        'level' => $swgohCharacterData['level'],
+                        'stars' => $swgohCharacterData['stars'],
+                        'gear' => $swgohCharacterData['gear'],
+                    ]);
+                } else {
+                    $memberCharacter = $this->Members->MemberCharacters->newEntity([
+                        'member_id' => $member->id,
+                        'character_id' => $characterId,
+                        'level' => $swgohCharacterData['level'],
+                        'stars' => $swgohCharacterData['stars'],
+                        'gear' => $swgohCharacterData['gear'],
+                    ]);
+                }
+                $newRecord = $memberCharacter->isNew();
+                if ($this->Members->MemberCharacters->save($memberCharacter)) {
+                    if ($newRecord) {
+                        $this->out('<success>Saving New Member Character: ' . $swgohCharacterName . '</success>');
+                    } else {
+                        $this->out('<success>Updating Existing Member Character: ' . $swgohCharacterName . '</success>');
+                    }
+                } else {
+                    $this->out('<error>Failed to Save Member Character: ' . $swgohCharacterName . '</error>');
+                }
+
+            } else {
+                $this->out('<error>Missing Character ID for Character: ' . $swgohCharacterName . '</error>');
+            }
+        }
+    }
+
+    private function getCharacters($url)
+    {
+        $characters = [];
         try {
-            $html = file_get_html(sprintf("%s/u/%s/collection/", self::SITE, $username));
-        } catch (\Exception $e) {
+            $html = file_get_html($url);
+        } catch (Exception $e) {
             return [];
         }
         foreach ($html->find('div[class="collection-char"]') as $element) {
@@ -176,10 +322,10 @@ class SyncShell extends Shell
 
             if (!empty($level)) {
                 $inactiveStars = $element->find('div[class="star-inactive"]');
-                $toons[$name]['stars'] = self::STARS - count($inactiveStars);
-                $toons[$name]['level'] = !empty($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) ? (int) $element->find('div[class="char-portrait-full-level"]', 0)->plaintext : null;
-                $toons[$name]['gear'] = !empty($element->find('div[class="char-portrait-full-gear-level"]', 0)->plaintext) ? self::GEAR_LEVELS[$element->find('div[class="char-portrait-full-gear-level"]', 0)->plaintext] : null;
-                $toons[$name]['light_side'] = stripos($element->getAttribute('class'), 'light-side') !== false;
+                $characters[$name]['stars'] = self::STARS - count($inactiveStars);
+                $characters[$name]['level'] = !empty($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) ? (int) $element->find('div[class="char-portrait-full-level"]', 0)->plaintext : null;
+                $characters[$name]['gear'] = !empty($element->find('div[class="char-portrait-full-gear-level"]', 0)->plaintext) ? self::GEAR_LEVELS[$element->find('div[class="char-portrait-full-gear-level"]', 0)->plaintext] : null;
+                $characters[$name]['light_side'] = stripos($element->getAttribute('class'), 'light-side') !== false;
                 $powerString = $element->find('div[class="collection-char-gp"]', 0)->getAttribute('title');
 
                 if (stripos($powerString, '/') !== false) {
@@ -189,28 +335,87 @@ class SyncShell extends Shell
                 }
 
                 if (!empty($power) && !empty($maxPower)) {
-                    $toons[$name]['power'] = $power;
-                    $toons[$name]['max_power'] = $maxPower;
+                    $characters[$name]['power'] = $power;
+                    $characters[$name]['max_power'] = $maxPower;
                 }
             } else {
-                $toons[$name]['stars'] = 0;
-                $toons[$name]['level'] = 0;
-                $toons[$name]['gear'] = 0;
-                $toons[$name]['light_side'] = stripos($element->getAttribute('class'), 'light-side') !== false;
-                $toons[$name]['power'] = 0;
-                $toons[$name]['max_power'] = 0;
+                $characters[$name]['stars'] = 0;
+                $characters[$name]['level'] = 0;
+                $characters[$name]['gear'] = 0;
+                $characters[$name]['light_side'] = stripos($element->getAttribute('class'), 'light-side') !== false;
+                $characters[$name]['power'] = 0;
+                $characters[$name]['max_power'] = 0;
             }
         }
 
-        return $toons;
+        return $characters;
     }
 
-    private function getShips($username)
+    private function syncShips(Member $member)
     {
-        Configure::write('debug', true);
+        $swgohShips = $this->getShips($member->ships_url);
+        ksort($swgohShips);
+        $ships = $this->Ships->find('list', ['keyField' => 'name', 'valueField' => 'id'])->toArray();
+        foreach ($swgohShips as $swgohShipName => $swgohShipData) {
+            if (!empty($ships[$swgohShipName])) {
+                $shipId = $ships[$swgohShipName];
+            } else {
+                $ship = $this->Ships->newEntity([
+                    'name' => $swgohShipName,
+                    'light_side' => $swgohShipData['light_side']
+                ]);
+
+                if ($this->Ships->save($ship)) {
+                    $this->out('<success>Saving New Ship: ' . $swgohShipName . '</success>');
+                    $shipId = $ship->id;
+                } else {
+                    $this->out('<error>Unable to save New Ship: ' . $swgohShipName . '</error>');
+                }
+            }
+
+            if (!empty($shipId)) {
+                $memberShip = $this->Members->MemberShips
+                    ->find()
+                    ->where([
+                        'MemberShips.member_id' => $member->id,
+                        'MemberShips.ship_id' => $shipId
+                    ])
+                    ->first();
+                if (!empty($memberShip)) {
+                    $memberShip = $this->Members->MemberShips->patchEntity($memberShip, [
+                        'level' => $swgohShipData['level'],
+                        'stars' => $swgohShipData['stars'],
+                    ]);
+                } else {
+                    $memberShip = $this->Members->MemberShips->newEntity([
+                        'member_id' => $member->id,
+                        'ship_id' => $shipId,
+                        'level' => $swgohShipData['level'],
+                        'stars' => $swgohShipData['stars'],
+                    ]);
+                }
+                $newRecord = $memberShip->isNew();
+                if ($this->Members->MemberShips->save($memberShip)) {
+                    if ($newRecord) {
+                        $this->out('<success>Saving New Member Ship: ' . $swgohShipName . '</success>');
+                    } else {
+                        $this->out('<success>Updating Existing Member Ship: ' . $swgohShipName . '</success>');
+                    }
+                } else {
+                    $this->out('<error>Failed to Save Member Ship: ' . $swgohShipName . '</error>');
+                }
+
+            } else {
+                $this->out('<error>Missing Ship ID for Ship: ' . $swgohShipName . '</error>');
+            }
+        }
+    }
+
+    private function getShips($url)
+    {
         $ships = [];
         try {
-            $html = file_get_html(sprintf("%s/u/%s/ships/", self::SITE, $username));
+            $html = file_get_html($url);
         } catch (\Exception $e) {
             return [];
         }
@@ -245,5 +450,22 @@ class SyncShell extends Shell
         }
 
         return $ships;
+    }
+
+    /**
+     * Manage the available sub-commands along with their arguments and help
+     *
+     * @see http://book.cakephp.org/3.0/en/console-and-shells.html#configuring-options-and-generating-help
+     *
+     * @return \Cake\Console\ConsoleOptionParser
+     */
+    public function getOptionParser()
+    {
+        $parser = parent::getOptionParser();
+        $parser->addSubcommand('base', [
+            'help' => 'Will Sync the base data',
+        ]);
+
+        return $parser;
     }
 }

@@ -36,5 +36,24 @@ class AppView extends View
      */
     public function initialize()
     {
+        $this->loadHelper('BootstrapUI.Flash');
+        $this->loadHelper('BootstrapUI.Form', [
+            'templates' => [
+                'dateWidget' => '
+                    <ul class="list-inline">
+                        <li class="month">{{month}}</li>
+                        <li class="day">{{day}}</li>
+                        <li class="year">{{year}}</li>
+                        <li class="hour">{{hour}}</li>
+                        <li class="minute">{{minute}}</li>
+                        <li class="second">{{second}}</li>
+                        <li class="meridian">{{meridian}}</li>
+                    </ul>
+                ',
+            ]
+        ]);
+        $this->loadHelper('BootstrapUI.Html');
+        $this->loadHelper('BootstrapUI.Paginator');
+        $this->loadHelper('Url');
     }
 }

@@ -2,17 +2,18 @@
 namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
+use Cake\Utility\Hash;
+use Cake\Utility\Inflector;
 
 /**
  * Ship Entity
  *
- * @property string $member
- * @property string $toon
- * @property int $level
- * @property int $stars
- * @property int $gear
- * @property \Cake\I18n\FrozenTime $created
- * @property \Cake\I18n\FrozenTime $modified
+ * @property int $id
+ * @property string $name
+ * @property int $light_side
+ *
+ * @property \App\Model\Entity\MemberShip[] $member_ships
+ * @property \App\Model\Entity\Faction[] $factions
  */
 class Ship extends Entity
 {
@@ -27,6 +28,23 @@ class Ship extends Entity
      * @var array
      */
     protected $_accessible = [
-        '*' => true,
+        'name' => true,
+        'light_side' => true,
+        'member_ships' => true,
+        'factions' => true
     ];
+
+    protected function _getFactionList()
+    {
+        if ($this->has('factions')) {
+            return join(', ', Hash::extract($this->factions, '{n}.name'));
+        }
+
+        return null;
+    }
+
+    protected function _getSlug()
+    {
+        return strtolower(Inflector::slug($this->name));
+    }
 }

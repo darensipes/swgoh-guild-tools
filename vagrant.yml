@@ -1,0 +1,14 @@
+---
+box: "queencitycodefactory/ubuntu-18.04"
+box_version: "0.0.1"
+name: swgoh
+hostname: "swgoh-vagrant-box"
+static_ip: "192.168.7.13"
+app_path: "/var/www/swgoh/"
+aliases:
+  - swgoh.local
+memory: "2048"
+cpus: "2"
+ansible:
+  playbook: "ansible/playbooks/development.yml"
+  host: "ansible/inventories/development"

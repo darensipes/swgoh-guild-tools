@@ -1,0 +1,3 @@
+---
+- name: restart memcached
+  command: systemctl restart memcached.service

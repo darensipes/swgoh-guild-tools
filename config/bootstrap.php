@@ -45,10 +45,9 @@ use Cake\Utility\Inflector;
 use Cake\Utility\Security;
 
 /**
- * Read .env file if APP_NAME is not set.
- *
- * You can remove this block if you do not want to use environment
- * variables for configuration when deploying.
+ * Uncomment block of code below if you want to use `.env` file during development.
+ * You should copy `config/.env.default to `config/.env` and set/modify the
+ * variables as required.
  */
 if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
     $dotenv = new \josegonzalez\Dotenv\Loader([CONFIG . '.env']);
@@ -87,14 +86,15 @@ try {
 if (Configure::read('debug')) {
     Configure::write('Cache._cake_model_.duration', '+2 minutes');
     Configure::write('Cache._cake_core_.duration', '+2 minutes');
+    // disable router cache during development
+    Configure::write('Cache._cake_routes_.duration', '+2 seconds');
 }
 
 /*
- * Set server timezone to UTC. You can change it to another timezone of your
- * choice but using UTC makes time calculations / conversions easier.
+ * Set the default server timezone. Using UTC makes time calculations / conversions easier.
  * Check http://php.net/manual/en/timezones.php for list of valid timezone strings.
  */
-date_default_timezone_set('UTC');
+date_default_timezone_set(Configure::read('App.defaultTimezone'));
 
 /*
  * Configure the mbstring extension to use the correct encoding.
@@ -197,21 +197,3 @@ Type::build('timestamp')
 //Inflector::rules('irregular', ['red' => 'redlings']);
 //Inflector::rules('uninflected', ['dontinflectme']);
 //Inflector::rules('transliteration', ['/å/' => 'aa']);
-
-/*
- * Plugins need to be loaded manually, you can either load them one by one or all of them in a single call
- * Uncomment one of the lines below, as you need. make sure you read the documentation on Plugin to use more
- * advanced ways of loading plugins
- *
- * Plugin::loadAll(); // Loads all plugins at once
- * Plugin::load('Migrations'); //Loads a single plugin named Migrations
- *
- */
-
-/*
- * Only try to load DebugKit in development mode
- * Debug Kit should not be installed on a production system
- */
-if (Configure::read('debug')) {
-    Plugin::load('DebugKit', ['bootstrap' => true]);
-}
