@@ -64,11 +64,14 @@ class SyncShell extends Shell
     public function main()
     {
         Configure::write('debug', true);
-        $syncUtcHour = (new Time())->format('H');
+        $guilds = $this->Guilds->find();
 
-        $guilds = $this->Guilds
-            ->find()
-            ->where(['sync_utc_hour' => $syncUtcHour]);
+        if (!empty($this->params['guildId'])) {
+            $guilds->where(['id' => $this->params['guildId']]);
+        } else {
+            $syncUtcHour = (new Time())->format('H');
+            $guilds->where(['sync_utc_hour' => $syncUtcHour]);
+        }
 
         foreach ($guilds as $guild) {
             $this->syncGuild($guild);
@@ -79,7 +82,6 @@ class SyncShell extends Shell
                 ])
                 ->where([
                     'Members.guild_id' => $guild->id,
-                    //'Members.swgoh_name' => '1911blaster'
                 ]);
 
             foreach ($members as $member) {
@@ -464,6 +466,10 @@ class SyncShell extends Shell
         $parser = parent::getOptionParser();
         $parser->addSubcommand('base', [
             'help' => 'Will Sync the base data',
+        ]);
+
+        $parser->addOption('guildId', [
+            'help' => 'Guild ID for the Guild you want to Sync'
         ]);
 
         return $parser;
