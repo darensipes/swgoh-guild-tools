@@ -341,7 +341,7 @@ class NewStructure extends AbstractMigration
                 'id',
                 [
                     'update' => 'NO_ACTION',
-                    'delete' => 'NO_ACTION'
+                    'delete' => 'CASCADE'
                 ]
             )
             ->addForeignKey(
@@ -350,7 +350,7 @@ class NewStructure extends AbstractMigration
                 'id',
                 [
                     'update' => 'NO_ACTION',
-                    'delete' => 'NO_ACTION'
+                    'delete' => 'CASCADE'
                 ]
             )
             ->update();
@@ -362,7 +362,7 @@ class NewStructure extends AbstractMigration
                 'id',
                 [
                     'update' => 'NO_ACTION',
-                    'delete' => 'NO_ACTION'
+                    'delete' => 'CASCADE'
                 ]
             )
             ->addForeignKey(
@@ -371,7 +371,7 @@ class NewStructure extends AbstractMigration
                 'id',
                 [
                     'update' => 'NO_ACTION',
-                    'delete' => 'NO_ACTION'
+                    'delete' => 'CASCADE'
                 ]
             )
             ->update();
@@ -383,7 +383,7 @@ class NewStructure extends AbstractMigration
                 'id',
                 [
                     'update' => 'NO_ACTION',
-                    'delete' => 'NO_ACTION'
+                    'delete' => 'CASCADE'
                 ]
             )
             ->addForeignKey(
@@ -392,7 +392,7 @@ class NewStructure extends AbstractMigration
                 'id',
                 [
                     'update' => 'NO_ACTION',
-                    'delete' => 'NO_ACTION'
+                    'delete' => 'CASCADE'
                 ]
             )
             ->update();
@@ -404,7 +404,7 @@ class NewStructure extends AbstractMigration
                 'id',
                 [
                     'update' => 'NO_ACTION',
-                    'delete' => 'NO_ACTION'
+                    'delete' => 'CASCADE'
                 ]
             )
             ->addForeignKey(
@@ -413,7 +413,7 @@ class NewStructure extends AbstractMigration
                 'id',
                 [
                     'update' => 'NO_ACTION',
-                    'delete' => 'NO_ACTION'
+                    'delete' => 'CASCADE'
                 ]
             )
             ->update();
@@ -425,7 +425,7 @@ class NewStructure extends AbstractMigration
                 'id',
                 [
                     'update' => 'NO_ACTION',
-                    'delete' => 'NO_ACTION'
+                    'delete' => 'CASCADE'
                 ]
             )
             ->update();
