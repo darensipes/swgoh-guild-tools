@@ -86,7 +86,7 @@ class SyncShell extends Shell
 
             foreach ($members as $member) {
                 $this->hr();
-                $this->out('Working with Member: ' . $member->swgoh_name);
+                $this->out('Working with Member: ' . $member->name);
                 $this->hr();
                 $this->syncCharacters($member);
                 $this->syncShips($member);
@@ -111,7 +111,7 @@ class SyncShell extends Shell
         }
         $factions = $this->Characters->Factions->find('list')->toArray();
         foreach ($html->find('li[class="character"]') as $element) {
-            $characterName = html_entity_decode($element->getAttribute('data-name-lower'), ENT_QUOTES);
+            $characterName = trim(html_entity_decode($element->getAttribute('data-name-lower'), ENT_QUOTES));
             $tags = $element->getAttribute('data-tags');
             $character = $this->Characters
                 ->find()
@@ -146,7 +146,7 @@ class SyncShell extends Shell
         }
         $factions = $this->Ships->Factions->find('list')->toArray();
         foreach ($html->find('li[class="character"]') as $element) {
-            $shipName = html_entity_decode($element->getAttribute('data-name-lower'), ENT_QUOTES);
+            $shipName = trim(html_entity_decode($element->getAttribute('data-name-lower'), ENT_QUOTES));
             $tags = $element->getAttribute('data-tags');
             $ship = $this->Ships
                 ->find()
@@ -185,11 +185,11 @@ class SyncShell extends Shell
 
     private function syncMembers(array $swgohMembers, $guildId)
     {
-        foreach ($swgohMembers as $swgohName => $inGameName) {
+        foreach ($swgohMembers as $swgohNumber => $inGameName) {
             $member = $this->Members
                 ->find()
                 ->where([
-                    'Members.swgoh_name' => $swgohName,
+                    'Members.swgoh_number' => $swgohNumber,
                     'Members.guild_id' => $guildId
                 ])
                 ->first();
@@ -197,13 +197,13 @@ class SyncShell extends Shell
             if (empty($member)) {
                 $member = $this->Members->newEntity([
                     'name' => $inGameName,
-                    'swgoh_name' => $swgohName,
+                    'swgoh_number' => $swgohNumber,
                     'guild_id' => $guildId
                 ]);
             } else {
                 $member = $this->Members->patchEntity($member, [
                     'name' => $inGameName,
-                    'swgoh_name' => $swgohName,
+                    'swgoh_number' => $swgohNumber,
                     'guild_id' => $guildId
                 ]);
             }
@@ -226,7 +226,7 @@ class SyncShell extends Shell
         $members = [];
         $html = file_get_html($url);
         foreach ($html->find('table[class="table"] td a') as $element) {
-            preg_match("/\/u\/(.*)\//", $element->href, $matches)[1];
+            preg_match("/\/p\/(.*)\//", $element->href, $matches)[1];
             $members[trim(rawurldecode($matches[1]))] = trim($element->plaintext);
         }
 
@@ -240,9 +240,9 @@ class SyncShell extends Shell
             ->where(['Members.guild_id' => $guildId]);
 
         foreach ($members as $member) {
-            if (!in_array($member->swgoh_name, $newMembers)) {
+            if (!in_array($member->swgoh_number, $newMembers)) {
                 if ($this->Members->delete($member)) {
-                    $this->out('<warning>Deleting Old Guild Member: ' . $member->swgoh_name . '</warning>');
+                    $this->out('<warning>Deleting Old Guild Member: ' . $member->name . '</warning>');
                 }
             }
         }
@@ -283,6 +283,7 @@ class SyncShell extends Shell
                         'level' => $swgohCharacterData['level'],
                         'stars' => $swgohCharacterData['stars'],
                         'gear' => $swgohCharacterData['gear'],
+                        'zetas' => $swgohCharacterData['zetas'],
                     ]);
                 } else {
                     $memberCharacter = $this->Members->MemberCharacters->newEntity([
@@ -291,6 +292,7 @@ class SyncShell extends Shell
                         'level' => $swgohCharacterData['level'],
                         'stars' => $swgohCharacterData['stars'],
                         'gear' => $swgohCharacterData['gear'],
+                        'zetas' => $swgohCharacterData['zetas'],
                     ]);
                 }
                 $newRecord = $memberCharacter->isNew();
@@ -319,16 +321,17 @@ class SyncShell extends Shell
             return [];
         }
         foreach ($html->find('div[class="collection-char"]') as $element) {
-            $name = !empty($element->find('div[class="collection-char-name"]', 0)->plaintext) ? html_entity_decode($element->find('div[class="collection-char-name"]', 0)->plaintext, ENT_QUOTES) : null;
-            $level = !empty($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) ? $element->find('div[class="char-portrait-full-level"]', 0)->plaintext : 0;
+            $name = !empty($element->find('div[class="collection-char-name"]', 0)->plaintext) ? trim(html_entity_decode($element->find('div[class="collection-char-name"]', 0)->plaintext, ENT_QUOTES)) : null;
+            $level = !empty($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) ? trim($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) : 0;
 
             if (!empty($level)) {
                 $inactiveStars = $element->find('div[class="star-inactive"]');
                 $characters[$name]['stars'] = self::STARS - count($inactiveStars);
-                $characters[$name]['level'] = !empty($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) ? (int) $element->find('div[class="char-portrait-full-level"]', 0)->plaintext : null;
-                $characters[$name]['gear'] = !empty($element->find('div[class="char-portrait-full-gear-level"]', 0)->plaintext) ? self::GEAR_LEVELS[$element->find('div[class="char-portrait-full-gear-level"]', 0)->plaintext] : null;
+                $characters[$name]['level'] = !empty($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) ? (int) trim($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) : null;
+                $characters[$name]['zetas'] = !empty($element->find('div[class="char-portrait-full-zeta"]', 0)->plaintext) ? (int) trim($element->find('div[class="char-portrait-full-zeta"]', 0)->plaintext) : 0;
+                $characters[$name]['gear'] = !empty($element->find('div[class="char-portrait-full-gear-level"]', 0)->plaintext) ? self::GEAR_LEVELS[trim($element->find('div[class="char-portrait-full-gear-level"]', 0)->plaintext)] : null;
                 $characters[$name]['light_side'] = stripos($element->getAttribute('class'), 'light-side') !== false;
-                $powerString = $element->find('div[class="collection-char-gp"]', 0)->getAttribute('title');
+                $powerString = trim($element->find('div[class="collection-char-gp"]', 0)->getAttribute('title'));
 
                 if (stripos($powerString, '/') !== false) {
                     list($power, $maxPower) = explode('/', $powerString);
@@ -344,6 +347,7 @@ class SyncShell extends Shell
                 $characters[$name]['stars'] = 0;
                 $characters[$name]['level'] = 0;
                 $characters[$name]['gear'] = 0;
+                $characters[$name]['zetas'] = 0;
                 $characters[$name]['light_side'] = stripos($element->getAttribute('class'), 'light-side') !== false;
                 $characters[$name]['power'] = 0;
                 $characters[$name]['max_power'] = 0;
@@ -422,15 +426,15 @@ class SyncShell extends Shell
             return [];
         }
         foreach ($html->find('div[class="collection-ship"]') as $element) {
-            $name = !empty($element->find('div[class="collection-ship-name"]', 0)->plaintext) ? html_entity_decode($element->find('div[class="collection-ship-name"]', 0)->plaintext, ENT_QUOTES) : null;
-            $level = !empty($element->find('div[class="ship-portrait-full-frame-level"]', 0)->plaintext) ? $element->find('div[class="ship-portrait-full-frame-level"]', 0)->plaintext : 0;
+            $name = !empty($element->find('div[class="collection-ship-name"]', 0)->plaintext) ? trim(html_entity_decode($element->find('div[class="collection-ship-name"]', 0)->plaintext, ENT_QUOTES)) : null;
+            $level = !empty($element->find('div[class="ship-portrait-full-frame-level"]', 0)->plaintext) ? trim($element->find('div[class="ship-portrait-full-frame-level"]', 0)->plaintext) : 0;
 
             if (!empty($level)) {
                 $inactiveStars = $element->find('div[class="ship-portrait-full-star-inactive"]');
                 $ships[$name]['stars'] = self::STARS - count($inactiveStars);
-                $ships[$name]['level'] = !empty($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) ? (int) $element->find('div[class="char-portrait-full-level"]', 0)->plaintext : null;
+                $ships[$name]['level'] = !empty($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) ? (int) trim($element->find('div[class="char-portrait-full-level"]', 0)->plaintext) : null;
                 $ships[$name]['light_side'] = stripos($element->getAttribute('class'), 'light-side') !== false;
-                $powerString = $element->find('div[class="collection-char-gp"]', 0)->getAttribute('title');
+                $powerString = trim($element->find('div[class="collection-char-gp"]', 0)->getAttribute('title'));
 
                 if (stripos($powerString, '/') !== false) {
                     list($power, $maxPower) = explode('/', $powerString);

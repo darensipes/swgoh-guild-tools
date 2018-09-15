@@ -9,7 +9,7 @@
                 <thead>
                     <tr>
                         <th scope="col"><?= __('Name') ?></th>
-                        <th scope="col"><?= __('Swgoh Name') ?></th>
+                        <th scope="col"><?= __('Swgoh Number') ?></th>
                         <th scope="col" class="text-center" style="width:10rem"><?= __('Actions') ?></th>
                     </tr>
                 </thead>
@@ -17,10 +17,10 @@
                 <?php foreach ($guild->members as $member): ?>
                     <tr>
                         <td><?= h($member->name) ?></td>
-                        <td><?= $this->Html->link($member->swgoh_name, $member->url, ['title' => 'View Profile on swgoh.gg', 'target' => '_blank', 'data-toggle' => 'tooltip']) ?></td>
+                        <td><?= $this->Html->link($member->swgoh_number, $member->url, ['title' => 'View Profile on swgoh.gg', 'target' => '_blank', 'data-toggle' => 'tooltip']) ?></td>
                         <td class="text-center">
-                            <?= $this->Html->link(__('Characters'), ['controller' => 'Members', 'action' => 'characters', 'guild' => $guild->slug, 'member' => $member->swgoh_name], ['class' => 'btn btn-outline-primary btn-xs']) ?>
-                            <?= $this->Html->link(__('Ships'), ['controller' => 'Members', 'action' => 'ships', 'guild' => $guild->slug, 'member' => $member->swgoh_name], ['class' => 'btn btn-outline-info btn-xs']) ?>
+                            <?= $this->Html->link(__('Characters'), ['controller' => 'Members', 'action' => 'characters', 'guild' => $guild->slug, 'member' => $member->swgoh_number], ['class' => 'btn btn-outline-primary btn-xs']) ?>
+                            <?= $this->Html->link(__('Ships'), ['controller' => 'Members', 'action' => 'ships', 'guild' => $guild->slug, 'member' => $member->swgoh_number], ['class' => 'btn btn-outline-info btn-xs']) ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>

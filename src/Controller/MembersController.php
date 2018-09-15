@@ -32,7 +32,7 @@ class MembersController extends AppController
                 ],
                 'Guilds'
             ])
-            ->where(['Members.swgoh_name' => $member])
+            ->where(['Members.swgoh_number' => $member])
             ->first();
 
         if (empty($member)) {
@@ -64,7 +64,7 @@ class MembersController extends AppController
                 ],
                 'Guilds'
             ])
-            ->where(['Members.swgoh_name' => $member])
+            ->where(['Members.swgoh_number' => $member])
             ->first();
 
         if (empty($member)) {

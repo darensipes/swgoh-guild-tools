@@ -34,6 +34,7 @@ class Member extends Entity
         'guild_id' => true,
         'name' => true,
         'swgoh_name' => true,
+        'swgoh_number' => true,
         'ally_code' => true,
         'created' => true,
         'modified' => true,
@@ -44,16 +45,16 @@ class Member extends Entity
 
     protected function _getUrl()
     {
-        return 'https://swgoh.gg/u/' . $this->swgoh_name . '/';
+        return 'https://swgoh.gg/p/' . $this->swgoh_number . '/';
     }
 
     protected function _getCharactersUrl()
     {
-        return 'https://swgoh.gg/u/' . $this->swgoh_name . '/collection/';
+        return 'https://swgoh.gg/p/' . $this->swgoh_number . '/characters/';
     }
 
     protected function _getShipsUrl()
     {
-        return 'https://swgoh.gg/u/' . $this->swgoh_name . '/ships/';
+        return 'https://swgoh.gg/p/' . $this->swgoh_number . '/ships/';
     }
 }

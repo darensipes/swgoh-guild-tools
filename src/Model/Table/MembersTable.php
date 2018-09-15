@@ -74,10 +74,9 @@ class MembersTable extends Table
             ->notEmpty('name');
 
         $validator
-            ->scalar('swgoh_name')
-            ->maxLength('swgoh_name', 150)
-            ->requirePresence('swgoh_name', 'create')
-            ->notEmpty('swgoh_name');
+            ->integer('swgoh_number')
+            ->requirePresence('swgoh_number', 'create')
+            ->notEmpty('swgoh_number');
 
         $validator
             ->scalar('ally_code')

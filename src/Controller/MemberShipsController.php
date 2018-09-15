@@ -69,7 +69,7 @@ class MemberShipsController extends AppController
             ->find()
             ->select([
                 'ship_id' => 'Ships.id',
-                'member_swgoh_name' => 'Members.swgoh_name',
+                'member_swgoh_number' => 'Members.swgoh_number',
                 'stars' => 'MemberShips.stars'
             ])
             ->where([
@@ -93,10 +93,10 @@ class MemberShipsController extends AppController
             ]);
         }
 
-        $memberShips = Hash::combine($memberShips->toArray(), '{n}.ship_id', '{n}.stars', '{n}.member_swgoh_name');
+        $memberShips = Hash::combine($memberShips->toArray(), '{n}.ship_id', '{n}.stars', '{n}.member_swgoh_number');
 
         $ships = $this->MemberShips->Ships->find('list')->orderAsc('name')->toArray();
-        $members = $this->MemberShips->Members->find('list', ['keyField' => 'swgoh_name', 'valueField' => 'name'])->orderAsc('name')->toArray();
+        $members = $this->MemberShips->Members->find('list', ['keyField' => 'swgoh_number', 'valueField' => 'name'])->orderAsc('name')->toArray();
 
         $this->set(compact('guild', 'ships', 'members', 'memberShips'));
     }
@@ -116,7 +116,7 @@ class MemberShipsController extends AppController
             ->find()
             ->select([
                 'ship_id' => 'Ships.id',
-                'member_swgoh_name' => 'Members.swgoh_name',
+                'member_swgoh_number' => 'Members.swgoh_number',
                 'level' => 'MemberShips.level'
             ])
             ->where([
@@ -140,10 +140,10 @@ class MemberShipsController extends AppController
             ]);
         }
 
-        $memberShips = Hash::combine($memberShips->toArray(), '{n}.ship_id', '{n}.level', '{n}.member_swgoh_name');
+        $memberShips = Hash::combine($memberShips->toArray(), '{n}.ship_id', '{n}.level', '{n}.member_swgoh_number');
 
         $ships = $this->MemberShips->Ships->find('list')->orderAsc('name')->toArray();
-        $members = $this->MemberShips->Members->find('list', ['keyField' => 'swgoh_name', 'valueField' => 'name'])->orderAsc('name')->toArray();
+        $members = $this->MemberShips->Members->find('list', ['keyField' => 'swgoh_number', 'valueField' => 'name'])->orderAsc('name')->toArray();
 
         $this->set(compact('guild', 'ships', 'members', 'memberShips'));
     }

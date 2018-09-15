@@ -17,7 +17,7 @@
                 <tbody>
                 <?php foreach ($memberShips as $memberShip): ?>
                     <tr>
-                        <td><?= $this->Html->link($memberShip->member->name, ['controller' => 'Members', 'action' => 'ships', 'guild' => $guild->slug, 'member' => $memberShip->member->swgoh_name]) ?></td>
+                        <td><?= $this->Html->link($memberShip->member->name, ['controller' => 'Members', 'action' => 'ships', 'guild' => $guild->slug, 'member' => $memberShip->member->swgoh_number]) ?></td>
                         <td><?= h($memberShip->stars) ?></td>
                         <td><?= h($memberShip->level) ?></td>
                     </tr>

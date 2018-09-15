@@ -13,15 +13,17 @@
                         <th scope="col"><?= __('Stars') ?></th>
                         <th scope="col"><?= __('Gear') ?></th>
                         <th scope="col"><?= __('Level') ?></th>
+                        <th scope="col"><?= __('Zetas') ?></th>
                     </tr>
                 </thead>
                 <tbody>
                 <?php foreach ($memberCharacters as $memberCharacter): ?>
                     <tr>
-                        <td><?= $this->Html->link($memberCharacter->member->name, ['controller' => 'Members', 'action' => 'characters', 'guild' => $guild->slug, 'member' => $memberCharacter->member->swgoh_name]) ?></td>
+                        <td><?= $this->Html->link($memberCharacter->member->name, ['controller' => 'Members', 'action' => 'characters', 'guild' => $guild->slug, 'member' => $memberCharacter->member->swgoh_number]) ?></td>
                         <td><?= h($memberCharacter->stars) ?></td>
                         <td><?= h($memberCharacter->gear) ?></td>
                         <td><?= h($memberCharacter->level) ?></td>
+                        <td><?= h($memberCharacter->zetas) ?></td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>

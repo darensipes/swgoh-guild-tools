@@ -36,6 +36,7 @@ class MemberCharacter extends Entity
         'level' => true,
         'stars' => true,
         'gear' => true,
+        'zetas' => true,
         'created' => true,
         'modified' => true,
         'member' => true,

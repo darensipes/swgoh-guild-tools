@@ -68,7 +68,7 @@ class MemberCharactersController extends AppController
             ->find()
             ->select([
                 'character_id' => 'Characters.id',
-                'member_swgoh_name' => 'Members.swgoh_name',
+                'member_swgoh_number' => 'Members.swgoh_number',
                 'stars' => 'MemberCharacters.stars'
             ])
             ->where([
@@ -92,10 +92,10 @@ class MemberCharactersController extends AppController
             ]);
         }
 
-        $memberCharacters = Hash::combine($memberCharacters->toArray(), '{n}.character_id', '{n}.stars', '{n}.member_swgoh_name');
+        $memberCharacters = Hash::combine($memberCharacters->toArray(), '{n}.character_id', '{n}.stars', '{n}.member_swgoh_number');
 
         $characters = $this->MemberCharacters->Characters->find('list')->orderAsc('name')->toArray();
-        $members = $this->MemberCharacters->Members->find('list', ['keyField' => 'swgoh_name', 'valueField' => 'name'])->orderAsc('name')->toArray();
+        $members = $this->MemberCharacters->Members->find('list', ['keyField' => 'swgoh_number', 'valueField' => 'name'])->orderAsc('name')->toArray();
 
         $this->set(compact('guild', 'characters', 'members', 'memberCharacters'));
     }
@@ -115,7 +115,7 @@ class MemberCharactersController extends AppController
             ->find()
             ->select([
                 'character_id' => 'Characters.id',
-                'member_swgoh_name' => 'Members.swgoh_name',
+                'member_swgoh_number' => 'Members.swgoh_number',
                 'level' => 'MemberCharacters.level'
             ])
             ->where([
@@ -139,10 +139,10 @@ class MemberCharactersController extends AppController
             ]);
         }
 
-        $memberCharacters = Hash::combine($memberCharacters->toArray(), '{n}.character_id', '{n}.level', '{n}.member_swgoh_name');
+        $memberCharacters = Hash::combine($memberCharacters->toArray(), '{n}.character_id', '{n}.level', '{n}.member_swgoh_number');
 
         $characters = $this->MemberCharacters->Characters->find('list')->orderAsc('name')->toArray();
-        $members = $this->MemberCharacters->Members->find('list', ['keyField' => 'swgoh_name', 'valueField' => 'name'])->orderAsc('name')->toArray();
+        $members = $this->MemberCharacters->Members->find('list', ['keyField' => 'swgoh_number', 'valueField' => 'name'])->orderAsc('name')->toArray();
 
         $this->set(compact('guild', 'characters', 'members', 'memberCharacters'));
     }
@@ -162,7 +162,7 @@ class MemberCharactersController extends AppController
             ->find()
             ->select([
                 'character_id' => 'Characters.id',
-                'member_swgoh_name' => 'Members.swgoh_name',
+                'member_swgoh_number' => 'Members.swgoh_number',
                 'gear' => 'MemberCharacters.gear'
             ])
             ->where([
@@ -186,10 +186,10 @@ class MemberCharactersController extends AppController
             ]);
         }
 
-        $memberCharacters = Hash::combine($memberCharacters->toArray(), '{n}.character_id', '{n}.gear', '{n}.member_swgoh_name');
+        $memberCharacters = Hash::combine($memberCharacters->toArray(), '{n}.character_id', '{n}.gear', '{n}.member_swgoh_number');
 
         $characters = $this->MemberCharacters->Characters->find('list')->orderAsc('name')->toArray();
-        $members = $this->MemberCharacters->Members->find('list', ['keyField' => 'swgoh_name', 'valueField' => 'name'])->orderAsc('name')->toArray();
+        $members = $this->MemberCharacters->Members->find('list', ['keyField' => 'swgoh_number', 'valueField' => 'name'])->orderAsc('name')->toArray();
 
         $this->set(compact('guild', 'characters', 'members', 'memberCharacters'));
     }
