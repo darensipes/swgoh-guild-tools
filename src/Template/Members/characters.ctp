@@ -10,6 +10,7 @@
                     <tr>
                         <th scope="col"><?= __('Name') ?></th>
                         <th scope="col"><?= __('Stars') ?></th>
+                        <th scope="col"><?= __('Zetas') ?></th>
                         <th scope="col"><?= __('Gear') ?></th>
                         <th scope="col"><?= __('Level') ?></th>
                         <th scope="col"><?= __('Side') ?></th>
@@ -21,6 +22,7 @@
                     <tr>
                         <td><?= $this->Html->link($memberCharacter->character->name, ['controller' => 'MemberCharacters', 'action' => 'character', 'character_id' => $memberCharacter->character->id, 'guild' => $member->guild->slug, 'slug' => $memberCharacter->character->slug]) ?></td>
                         <td><?= h($memberCharacter->stars) ?></td>
+                        <td><?= h($memberCharacter->zetas) ?></td>
                         <td><?= h($memberCharacter->gear) ?></td>
                         <td><?= h($memberCharacter->level) ?></td>
                         <td><?= !empty($memberCharacter->character->light_side) ? '<i class="fab fa-rebel text-primary"></i><span style="display:none">Light</span>' : '<i class="fab fa-empire text-danger"></i><span style="display:none">Dark</span>' ?></td>
